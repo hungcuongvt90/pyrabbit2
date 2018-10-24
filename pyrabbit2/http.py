@@ -107,7 +107,7 @@ class HTTPClient(object):
         if resp.status_code < 200 or resp.status_code > 206:
             raise HTTPError(content, resp.status_code, resp.text, path, body)
         else:
-            if content:
+            if content is not None:
                 return content
             else:
                 return resp.status_code
