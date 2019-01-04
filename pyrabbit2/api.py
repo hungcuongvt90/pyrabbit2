@@ -604,13 +604,23 @@ class Client(object):
         else:
             path = Client.urls['all_queues']
 
-        params = None
         if pattern:
+            cur_page = 1
+            num_pages = 1
+            queues = list()
             params = {
-                'use_regex': regex,
+                'use_regex': 'true' if regex else 'false',
                 'name': pattern,
+                'pagination': True,
             }
-        queues = self._call(path, 'GET', params=params)
+            while cur_page <= num_pages:
+                params['page'] = cur_page
+                result = self._call(path, 'GET', params=params)
+                queues.extend(result['items'])
+                cur_page += 1
+                num_pages = result['page_count']
+        else:
+            queues = self._call(path, 'GET')
         return queues or list()
 
     def get_queue(self, vhost, name):
