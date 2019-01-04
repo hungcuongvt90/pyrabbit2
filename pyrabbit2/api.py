@@ -114,13 +114,13 @@ class Client(object):
 
         return
 
-    def _call(self, path, method, body=None, headers=None):
+    def _call(self, path, method, body=None, headers=None, params=None):
         """
         Wrapper around http.do_call that transforms some HTTPError into
         our own exceptions
         """
         try:
-            resp = self.http.do_call(path, method, body, headers)
+            resp = self.http.do_call(path, method, body, headers, params)
         except http.HTTPError as err:
             if err.status == 401:
                 raise PermissionError('Insufficient permissions to query ' +
