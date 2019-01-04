@@ -584,7 +584,7 @@ class Client(object):
     #############################################
     #               QUEUES
     #############################################
-    def get_queues(self, vhost=None):
+    def get_queues(self, vhost=None, pattern=None, regex=False):
         """
         Get all queues, or all queues in a vhost if vhost is not None.
         Returns a list.
@@ -592,6 +592,8 @@ class Client(object):
         :param string vhost: The virtual host to list queues for. If This is
                     None (the default), all queues for the broker instance
                     are returned.
+        :param string pattern: Name pattern to filter queues
+        :param boolean regex: True if pattern is regex
         :returns: A list of dicts, each representing a queue.
         :rtype: list of dicts
 
@@ -602,7 +604,13 @@ class Client(object):
         else:
             path = Client.urls['all_queues']
 
-        queues = self._call(path, 'GET')
+        params = None
+        if pattern:
+            params = {
+                'use_regex': regex,
+                'name': pattern,
+            }
+        queues = self._call(path, 'GET', params=params)
         return queues or list()
 
     def get_queue(self, vhost, name):
