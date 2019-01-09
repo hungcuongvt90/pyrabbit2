@@ -74,7 +74,7 @@ class HTTPClient(object):
         self.verify = verify
         self.cert = cert
 
-    def do_call(self, path, method, body=None, headers=None):
+    def do_call(self, path, method, body=None, headers=None, params=None):
         """
         Send an HTTP request to the REST API.
 
@@ -85,13 +85,15 @@ class HTTPClient(object):
             body of the HTTP request.
         :param dictionary headers:
             "{header-name: header-value}" dictionary.
+        :param dictionary params: query parameters
 
         """
         url = urljoin(self.base_url, path)
         try:
             resp = requests.request(method, url, data=body, headers=headers,
                                     auth=self.auth, timeout=self.timeout,
-                                    verify=self.verify, cert=self.cert)
+                                    verify=self.verify, cert=self.cert,
+                                    params=params)
         except requests.exceptions.Timeout as out:
             raise NetworkError("Timeout while trying to connect to RabbitMQ")
         except requests.exceptions.RequestException as err:

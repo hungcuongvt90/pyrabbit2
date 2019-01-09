@@ -114,13 +114,13 @@ class Client(object):
 
         return
 
-    def _call(self, path, method, body=None, headers=None):
+    def _call(self, path, method, body=None, headers=None, params=None):
         """
         Wrapper around http.do_call that transforms some HTTPError into
         our own exceptions
         """
         try:
-            resp = self.http.do_call(path, method, body, headers)
+            resp = self.http.do_call(path, method, body, headers, params)
         except http.HTTPError as err:
             if err.status == 401:
                 raise PermissionError('Insufficient permissions to query ' +
@@ -584,7 +584,7 @@ class Client(object):
     #############################################
     #               QUEUES
     #############################################
-    def get_queues(self, vhost=None):
+    def get_queues(self, vhost=None, pattern=None, regex=False):
         """
         Get all queues, or all queues in a vhost if vhost is not None.
         Returns a list.
@@ -592,6 +592,8 @@ class Client(object):
         :param string vhost: The virtual host to list queues for. If This is
                     None (the default), all queues for the broker instance
                     are returned.
+        :param string pattern: Name pattern to filter queues
+        :param boolean regex: True if pattern is regex
         :returns: A list of dicts, each representing a queue.
         :rtype: list of dicts
 
@@ -602,7 +604,23 @@ class Client(object):
         else:
             path = Client.urls['all_queues']
 
-        queues = self._call(path, 'GET')
+        if pattern:
+            cur_page = 1
+            num_pages = 1
+            queues = list()
+            params = {
+                'use_regex': 'true' if regex else 'false',
+                'name': pattern,
+                'pagination': True,
+            }
+            while cur_page <= num_pages:
+                params['page'] = cur_page
+                result = self._call(path, 'GET', params=params)
+                queues.extend(result['items'])
+                cur_page += 1
+                num_pages = result['page_count']
+        else:
+            queues = self._call(path, 'GET')
         return queues or list()
 
     def get_queue(self, vhost, name):
