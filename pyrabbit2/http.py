@@ -1,14 +1,15 @@
-
 import json
 import os
 import socket
 import requests
 import requests.exceptions
 from requests.auth import HTTPBasicAuth
+
 try:
     from urlparse import urljoin, urlparse, urlunparse
 except ImportError:
     from urllib.parse import urljoin, urlparse, urlunparse
+
 
 class HTTPError(Exception):
     """
@@ -16,8 +17,9 @@ class HTTPError(Exception):
     HTTP error of some kind (404, 500, etc).
 
     """
+
     def __init__(self, content, status=None, reason=None, path=None, body=None):
-        #HTTP status code
+        # HTTP status code
         self.status = status
         # human readable HTTP status
         self.reason = reason
@@ -26,15 +28,15 @@ class HTTPError(Exception):
         self.detail = None
 
         # Actual, useful reason for failure returned by RabbitMQ
-        self.detail=None
+        self.detail = None
         if content and content.get('reason'):
             self.detail = content['reason']
 
         self.output = "%s - %s (%s) (%s) (%s)" % (self.status,
-                                             self.reason,
-                                             self.detail,
-                                             self.path,
-                                             repr(self.body))
+                                                  self.reason,
+                                                  self.detail,
+                                                  self.path,
+                                                  repr(self.body))
 
     def __str__(self):
         return self.output

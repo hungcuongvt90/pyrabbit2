@@ -7,6 +7,7 @@ decorators used by the class.
 from . import http
 # import functools  # UNUSED
 import json
+
 try:
     # python 2.x
     from urllib import quote
@@ -16,7 +17,6 @@ except ImportError:
 
 
 class APIError(Exception):
-
     """Denotes a failure due to unexpected or invalid
     input/output between the client and the API
 
@@ -25,7 +25,6 @@ class APIError(Exception):
 
 
 class PermissionError(Exception):
-
     """
     Raised if the operation requires admin permissions, and the user used to
     instantiate the Client class does not have admin privileges.
@@ -34,7 +33,6 @@ class PermissionError(Exception):
 
 
 class Client(object):
-
     """
     Abstraction of the RabbitMQ Management HTTP API.
 
@@ -73,9 +71,9 @@ class Client(object):
             'user_permissions': 'users/%s/permissions',
             'vhost_permissions_get': 'vhosts/%s/permissions',
             'shovel': 'parameters/shovel/%s/%s',
-            'all_shovels':  'parameters/shovel',
+            'all_shovels': 'parameters/shovel',
             'policy': 'policies/%s/%s',
-            'all_policies':  'policies',
+            'all_policies': 'policies',
             'definitions': 'definitions',
             'extensions': 'extensions',
             'cluster-name': 'cluster-name',
@@ -124,7 +122,7 @@ class Client(object):
         except http.HTTPError as err:
             if err.status == 401:
                 raise PermissionError('Insufficient permissions to query ' +
-                    '%s with user %s :%s' % (path, self.user, err))
+                                      '%s with user %s :%s' % (path, self.user, err))
             raise
         return resp
 
@@ -478,6 +476,21 @@ class Client(object):
 
         exchanges = self._call(path, 'GET')
         return exchanges
+
+    def get_bindings_exchange(self, name, vhost):
+        """
+        Get all binding of the exchange
+        :param string name: The name of the exchange
+        :param string vhost: The vhost containing the target exchange
+        :return: list of bindings of the exchange
+        """
+
+        vhost = quote(vhost, '')
+        name = quote(name, '')
+        path = Client.urls['bindings_by_source_exch'] % (vhost, name)
+
+        exch = self._call(path, 'GET')
+        return exch
 
     def get_exchange(self, vhost, name):
         """
@@ -943,7 +956,8 @@ class Client(object):
         if bool(password):
             body = json.dumps({'password': password, 'tags': tags})
         elif bool(password_hash):
-            body = json.dumps({'password_hash': password_hash, 'hashing_algorithm': 'rabbit_password_hashing_sha256', 'tags': tags})
+            body = json.dumps(
+                {'password_hash': password_hash, 'hashing_algorithm': 'rabbit_password_hashing_sha256', 'tags': tags})
         else:
             raise APIError("password or password_hash should be present.")
         return self._call(path, 'PUT', body=body,
